@@ -1,7 +1,9 @@
 import Image from "next/image";
 import styles from "./page.module.css";
+import { Suspense } from "react";
+import { LoadingComponent } from "./_components/LoadingComponent";
 
-export default function Home() {
+export default async function Page() {
   return (
     <div className={styles.page}>
       <main className={styles.main}>
@@ -19,6 +21,18 @@ export default function Home() {
           </li>
           <li>Save and see your changes instantly.</li>
         </ol>
+
+        <Suspense fallback={<LoadingComponent />}>
+          {fetch("https://dummyjson.com/products", { cache: "no-store" })
+            .then((res) => res.json())
+            .then(
+              (
+                _ // eslint-disable-line @typescript-eslint/no-unused-vars
+              ) => (
+                <div>hoge</div>
+              )
+            )}
+        </Suspense>
 
         <div className={styles.ctas}>
           <a

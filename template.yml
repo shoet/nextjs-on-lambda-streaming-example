@@ -1,0 +1,36 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  nextjs-on-lambda-example
+
+Globals:
+  Function:
+    Timeout: 5
+    MemorySize: 128
+
+Resources:
+  HelloWorldFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Image
+      Architectures:
+        - arm64
+      Environment:
+        Variables:
+          AWS_LWA_INVOKE_MODE: response_stream
+      FunctionUrlConfig:
+        AuthType: NONE
+        InvokeMode: RESPONSE_STREAM
+    Metadata:
+      DockerTag: nextjs-on-lambda-example
+      DockerContext: .
+      Dockerfile: Dockerfile
+      DockerBuildTarget: runner
+
+Outputs:
+  HelloWorldFunctionIamRole:
+    Description: "Implicit IAM Role created for Hello World function"
+    Value: !GetAtt HelloWorldFunctionRole.Arn
+  HelloWorldFunctionStreamingUrl:
+    Description: "Streaming URL for Hello World function"
+    Value: !GetAtt HelloWorldFunctionUrl.FunctionUrl

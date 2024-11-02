@@ -1,0 +1,65 @@
+service: nextjs-on-lambda-example
+frameworkVersion: "3"
+
+provider:
+  name: aws
+  region: ap-northeast-1
+  stage: ${opt:stage, self:custom.defaultStage}
+  environment:
+    STAGE: ${self:provider.stage}
+    TZ: "Asia/Tokyo"
+
+  ecr:
+    images:
+      ExampleContainerImage:
+        path: ./
+        file: Dockerfile
+        platform: linux/amd64
+
+custom:
+  defaultStage: dev
+
+package:
+  patterns:
+    - "!./**"
+
+functions:
+  ExampleApp:
+    role: ExampleLambdaRole
+    image:
+      name: ExampleContainerImage
+    description: Next.js on Lambda
+    events:
+      - httpApi:
+          path: /{proxy+}
+          method: any
+    timeout: 29
+    url:
+      invokeMode: RESPONSE_STREAM
+    environment:
+      AWS_LWA_INVOKE_MODE: response_stream
+
+resources:
+  Resources:
+    ExampleLambdaRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: nextjs-on-lambda-example-role-${self:provider.stage}
+        AssumeRolePolicyDocument:
+          Statement:
+            - Effect: "Allow"
+              Principal:
+                Service:
+                  - lambda.amazonaws.com
+              Action:
+                - "sts:AssumeRole"
+        Policies:
+          - PolicyName: nextjs-on-lambda-example-policy-${self:provider.stage}
+            PolicyDocument:
+              Statement:
+                - Effect: "Allow"
+                  Action:
+                    - "logs:CreateLogGroup"
+                    - "logs:CreateLogStream"
+                    - "logs:PutLogEvents"
+                  Resource: "arn:aws:logs:*:*:*"
